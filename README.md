@@ -1,7 +1,7 @@
 # Medication Tracker
 
 #### Video Demo  
-https://youtu.be/cIUqQ-yRMe4  
+https://youtu.be/CVh5RM7tVR4  
 
 #### Description  
 The Flask-based web app helps users keep track of their medications and check for duplicates. In addition, it validates drugs with RxNorm, retrieves side effect information from the FDA, flags unverified entries, and lets users archive or restore medications. Security features are included throughout the app.  
