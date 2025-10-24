@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<!-- Portions of this project were developed with AI assistance (ChatGPT, Claude). -->
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Medication Tracker{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Lucide Icons CDN for lightweight, modern icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+    <!-- Header Bar with Pill Icon -->
+    <header class="app-header">
+        <h1>Medication Tracker</h1>
+    </header>
+
+    <!-- Navigation Menu -->
+    <nav>
+        {% if session.get('user_id') %}
+            <a href="/">
+                <span class="nav-icon">🏠</span> Home
+            </a>
+            <a href="/add_medication">
+                <span class="nav-icon">➕</span> Add Medication
+            </a>
+            <a href="/list_medications">
+                <span class="nav-icon">📋</span> View Medications
+            </a>
+            <a href="/logout">
+                <span class="nav-icon">🚪</span> Logout
+            </a>
+        {% else %}
+            <a href="/">
+                <span class="nav-icon">🏠</span> Home
+            </a>
+            <a href="/register">
+                <span class="nav-icon">📝</span> Register
+            </a>
+            <a href="/login">
+                <span class="nav-icon">🔑</span> Login
+            </a>
+        {% endif %}
+    </nav>
+
+    <main class="container">
+        {% block main %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>© 2025 Pauline Rickey. All rights reserved.</p>
+        <p>Dedicated to my Dad, whose love and strength continue to guide me.</p>
+        <p class="credit">Photo by Comstock on FreeImages.com</p>
+    </footer>
+
+    <!-- Session Timeout Logic (15 min timeout with 13 min warning)-->
+    <script>
+        const SESSION_TIMEOUT = 15 * 60 * 1000;  // 15 minutes total
+        const WARNING_TIME = 13 * 60 * 1000;     // Warn after 13 minutes
+        let warningTimer, logoutTimer;
+
+        function showWarning() {
+            if (document.getElementById('session-warning')) return;
+
+            const warningDiv = document.createElement('div');
+            warningDiv.id = 'session-warning';
+            warningDiv.innerHTML = `
+                <div class="session-popup">
+                    <h3>⚠️ Session Timeout Warning</h3>
+                    <p>You've been inactive. Your session will expire in <strong>2 minutes</strong>.</p>
+                    <button onclick="resetTimers()">Stay Logged In</button>
+                </div>`;
+            document.body.appendChild(warningDiv);
+        }
+
+        function resetTimers() {
+            const warning = document.getElementById('session-warning');
+            if (warning) warning.remove();
+            
+            clearTimeout(warningTimer);
+            clearTimeout(logoutTimer);
+            startTimers();
+            
+            // Ping server to keep session active
+            fetch("/", { method: "GET" });
+        }
+
+        function startTimers() {
+            warningTimer = setTimeout(showWarning, WARNING_TIME);
+            logoutTimer = setTimeout(() => {
+                window.location.href = "/logout?expired=1";
+            }, SESSION_TIMEOUT);
+        }
+
+        // Reset on user activity
+        ["click", "keypress", "mousemove", "scroll"].forEach(evt => {
+            document.addEventListener(evt, resetTimers);
+        });
+
+        startTimers();
+    </script>
+    
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

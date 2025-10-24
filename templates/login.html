@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}
+Login
+{% endblock %}
+
+{% block main %}
+<div class="card auth-card">
+    <div class="auth-header">
+        <div class="auth-icon">🔑</div>
+        <h2>Login</h2>
+        <p class="auth-subtitle">Welcome back! Please login to your account</p>
+    </div>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% elif success %}
+        <p class="success">{{ success }}</p>
+    {% endif %}
+
+    <form action="/login" method="post">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input 
+                type="text" 
+                name="username" 
+                id="username" 
+                placeholder="Enter your username"
+                required 
+                autofocus
+            >
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input 
+                type="password" 
+                name="password" 
+                id="password" 
+                placeholder="Enter your password"
+                required
+            >
+        </div>
+        
+        <button type="submit">Login</button>
+    </form>
+
+    <div class="auth-footer">
+        <p>Don't have an account? <a href="/register">Register here</a></p>
+    </div>
+</div>
+
+<script>
+// Proper focus trap - keep tabbing within the form
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const focusableElements = form.querySelectorAll('input, textarea, button');
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    
+    form.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            if (e.shiftKey) { // Shift + Tab (backwards)
+                if (document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                }
+            } else { // Tab (forwards)
+                if (document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        }
+    });
+    
+    // Ensure first field is focused on page load
+    firstElement.focus();
+});
+</script>
+
+{% endblock %}

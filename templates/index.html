@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}
+Home - Medication Tracker
+{% endblock %}
+
+{% block main %}
+<div class="card home-card">
+    {% if session.user_id %}
+        <!-- Logged in view -->
+        <div class="welcome-section">
+            <h1>Welcome Back! 👋</h1>
+            <p class="subtitle">Manage your medications safely and easily</p>
+            
+            <div class="stats-card">
+                <div class="stat-item">
+                    <span class="stat-number">{{ med_count }}</span>
+                    <span class="stat-label">Active Medication{{ 's' if med_count != 1 else '' }}</span>
+                </div>
+            </div>
+
+            <div class="disclaimer">
+                <h3>⚠️ Important Disclaimer</h3>
+                <p>
+                    <strong>This medication tracker is a personal organizational tool only.</strong> 
+                    It is NOT a substitute for professional medical advice, diagnosis, or treatment. 
+                    Always seek the advice of your physician or other qualified health provider 
+                    with any questions about your medications or medical conditions.
+                </p>
+            </div>
+
+            <div class="action-buttons">
+                <a class="button-link btn-primary" href="/add_medication">
+                    <span class="btn-icon">➕</span>
+                    Add Medication
+                </a>
+                <a class="button-link btn-secondary" href="/list_medications">
+                    <span class="btn-icon">📋</span>
+                    View Medications
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <!-- Not logged in view -->
+        <div class="welcome-section">
+            <h1>Welcome to</h1>
+            <h1>Medication Tracker! 💊</h1>
+            <p class="subtitle">Keep track of your prescriptions, dosages, and notes all in one place.</p>
+            
+            <!-- Disclaimer FIRST -->
+            <div class="disclaimer">
+                <h3>⚠️ Important Disclaimer</h3>
+                <p>
+                    <strong>This medication tracker is a personal organizational tool only.</strong> 
+                    It is NOT a substitute for professional medical advice, diagnosis, or treatment. 
+                    The information provided by this application, including drug information from external sources, 
+                    is for informational purposes only. Always seek the advice of your physician or other qualified 
+                    health provider with any questions about your medications or medical conditions. Never disregard 
+                    professional medical advice or delay seeking it because of something you have read in this application. 
+                    You are solely responsible for all decisions regarding your medications and healthcare.
+                </p>
+            </div>
+
+            <!-- Smaller Features Grid -->
+            <div class="features-grid-small">
+                <div class="feature-item-small">
+                    <div class="feature-icon-small">🔍</div>
+                    <h4>RxNorm Lookup</h4>
+                    <p>Validate with NIH database</p>
+                </div>
+                <div class="feature-item-small">
+                    <div class="feature-icon-small">⚠️</div>
+                    <h4>Duplicate Detection</h4>
+                    <p>Prevents duplicates</p>
+                </div>
+                <div class="feature-item-small">
+                    <div class="feature-icon-small">💉</div>
+                    <h4>Side Effects Info</h4>
+                    <p>FDA-sourced data</p>
+                </div>
+                <div class="feature-item-small">
+                    <div class="feature-icon-small">📦</div>
+                    <h4>Archive Function</h4>
+                    <p>Historical records</p>
+                </div>
+            </div>
+
+            <!-- Bigger Action Buttons -->
+            <div class="action-buttons-large">
+                <a class="button-link-large btn-primary" href="/register">
+                    <span class="btn-icon">📝</span>
+                    Create Account
+                </a>
+                <a class="button-link-large btn-secondary" href="/login">
+                    <span class="btn-icon">🔑</span>
+                    Login
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

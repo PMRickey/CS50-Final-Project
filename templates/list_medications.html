@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Medications
+{% endblock %}
+
+{% block main %}
+<div class="card medications-table-card">
+    <!-- ACTIVE MEDICATIONS SECTION -->
+    <div class="card-header">
+        <h2>Active Medications</h2>
+        <p class="med-count">
+            {% if medications %}
+                {{ medications|length }} active medication{{ 's' if medications|length != 1 else '' }}
+            {% else %}
+                No active medications
+            {% endif %}
+        </p>
+    </div>
+
+    {% if medications %}
+        <div class="table-container">
+            <table class="senior-friendly-table">
+                <thead>
+                    <tr>
+                        <th>Medication Name</th>
+                        <th>Dosage</th>
+                        <th>Frequency</th>
+                        <th>Purpose</th>
+                        <th>Side Effects</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for med in medications %}
+                    <tr>
+                        <!-- Medication Name Column -->
+                        <td class="med-name-cell">
+                            <strong>{{ med['name'].title() }}</strong>
+                            
+                            {# Show unverified badge if not verified #}
+                            {% if med['verified'] == 0 %}
+                                <br><span class="table-badge badge-unverified">⚠️ Unverified</span>
+                            {% endif %}
+                            
+                            {# Count duplicates #}
+                            {% set same_name_meds = [] %}
+                            {% for m in medications %}
+                                {% if m['name'] == med['name'] %}
+                                    {% set _ = same_name_meds.append(m) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {# Show duplicate warning #}
+                            {% if same_name_meds|length > 1 %}
+                                <br><span class="table-badge badge-duplicate">⚠️ DUPLICATE</span>
+                            {% endif %}
+                            
+                            {# Show overlap warning #}
+                            {% if med['overlap_ingredients'] %}
+                                <br><span class="table-badge badge-overlap">⚠️ Ingredient Overlap</span>
+                                <br><small class="overlap-detail">{{ ', '.join(med['overlap_ingredients']) }}</small>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Dosage Column -->
+                        <td class="dosage-cell">{{ med['dosage'] or '-' }}</td>
+                        
+                        <!-- Frequency Column -->
+                        <td class="frequency-cell">{{ med['frequency'] or '-' }}</td>
+                        
+                        <!-- Purpose Column -->
+                        <td class="purpose-cell">{{ med['purpose'] or '-' }}</td>
+                        
+                        <!-- Side Effects Column -->
+                        <td class="sidefx-cell {% if med['side_effects_auto'] %}auto-populated{% endif %}">
+                            {% if med['side_effects'] %}
+                                {% if med['side_effects_auto'] %}
+                                    <span class="auto-indicator" title="Auto-populated from FDA">🤖 </span>
+                                {% endif %}
+                                
+                                {% set short_text = med['side_effects'][:150] %}
+                                <span class="sidefx-short">{{ short_text }}{% if med['side_effects']|length > 150 %}...{% endif %}</span>
+
+                                {% if med['side_effects']|length > 150 %}
+                                    <span class="sidefx-full" style="display:none;">{{ med['side_effects'] }}</span>
+                                    <button type="button" class="toggle-sidefx" onclick="toggleSideEffects(this)">Show More</button>
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Notes Column -->
+                        <td class="notes-cell">{{ med['notes'] or '-' }}</td>
+                        
+                        <!-- Actions Column -->
+                        <td class="actions-cell">
+                            <form action="/archive_medication/{{ med['id'] }}" method="post" style="display: inline;">
+                                <button type="submit" class="archive-btn">
+                                    📦 Archive
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">💊</div>
+            <h3>No Active Medications</h3>
+            <p>You haven't added any medications yet.</p>
+            <a href="/add_medication" class="button-link">Add Your First Medication</a>
+        </div>
+    {% endif %}
+
+    <!-- ARCHIVED MEDICATIONS SECTION -->
+    {% if archived %}
+        <div style="margin-top: 60px; padding-top: 40px; border-top: 3px solid #e5e7eb;">
+            <div class="card-header">
+                <h2>Archived Medications</h2>
+                <p class="med-count">
+                    {{ archived|length }} archived medication{{ 's' if archived|length != 1 else '' }}
+                </p>
+            </div>
+
+            <div class="table-container">
+                <table class="senior-friendly-table">
+                    <thead>
+                        <tr>
+                            <th>Medication Name</th>
+                            <th>Dosage</th>
+                            <th>Frequency</th>
+                            <th>Purpose</th>
+                            <th>Side Effects</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for med in archived %}
+                        <tr style="opacity: 0.7;">
+                            <!-- Medication Name Column -->
+                            <td class="med-name-cell">
+                                <strong>{{ med['name'].title() }}</strong>
+                                
+                                {# Show unverified badge if not verified #}
+                                {% if med['verified'] == 0 %}
+                                    <br><span class="table-badge badge-unverified">⚠️ Unverified</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Dosage Column -->
+                            <td class="dosage-cell">{{ med['dosage'] or '-' }}</td>
+                            
+                            <!-- Frequency Column -->
+                            <td class="frequency-cell">{{ med['frequency'] or '-' }}</td>
+                            
+                            <!-- Purpose Column -->
+                            <td class="purpose-cell">{{ med['purpose'] or '-' }}</td>
+                            
+                            <!-- Side Effects Column -->
+                            <td class="sidefx-cell {% if med['side_effects_auto'] %}auto-populated{% endif %}">
+                                {% if med['side_effects'] %}
+                                    {% if med['side_effects_auto'] %}
+                                        <span class="auto-indicator" title="Auto-populated from FDA">🤖 </span>
+                                    {% endif %}
+                                    
+                                    {% set short_text = med['side_effects'][:150] %}
+                                    <span class="sidefx-short-{{ med['id'] }}">{{ short_text }}{% if med['side_effects']|length > 150 %}...{% endif %}</span>
+
+                                    {% if med['side_effects']|length > 150 %}
+                                        <span class="sidefx-full-{{ med['id'] }}" style="display:none;">{{ med['side_effects'] }}</span>
+                                        <button type="button" class="toggle-sidefx" onclick="toggleSideEffectsArchived(this, {{ med['id'] }})">Show More</button>
+                                    {% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Notes Column -->
+                            <td class="notes-cell">{{ med['notes'] or '-' }}</td>
+                            
+                            <!-- Actions Column -->
+                            <td class="actions-cell">
+                                <form action="/unarchive_medication/{{ med['id'] }}" method="post" style="display: inline;">
+                                    <button type="submit" class="archive-btn" style="background-color: #10b981;">
+                                        ♻️ Unarchive
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleSideEffects(btn) {
+    const parent = btn.closest('td');
+    const shortText = parent.querySelector('.sidefx-short');
+    const fullText = parent.querySelector('.sidefx-full');
+    
+    if (fullText.style.display === 'none') {
+        fullText.style.display = 'inline';
+        shortText.style.display = 'none';
+        btn.textContent = 'Show Less';
+    } else {
+        fullText.style.display = 'none';
+        shortText.style.display = 'inline';
+        btn.textContent = 'Show More';
+    }
+}
+
+function toggleSideEffectsArchived(btn, medId) {
+    const parent = btn.closest('td');
+    const shortText = parent.querySelector('.sidefx-short-' + medId);
+    const fullText = parent.querySelector('.sidefx-full-' + medId);
+    
+    if (fullText.style.display === 'none') {
+        fullText.style.display = 'inline';
+        shortText.style.display = 'none';
+        btn.textContent = 'Show Less';
+    } else {
+        fullText.style.display = 'none';
+        shortText.style.display = 'inline';
+        btn.textContent = 'Show More';
+    }
+}
+</script>
+
+{% endblock %}

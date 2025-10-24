@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}
+Add Medication
+{% endblock %}
+
+{% block main %}
+
+<div class="card">
+    <h2>Add Medication</h2>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Error and success messages -->
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% elif success %}
+        <p class="success">{{ success }}</p>
+    {% endif %}
+
+    <!-- Warning boxes with better styling -->
+    {% if warning %}
+        {% if "overlap" in warning.lower() %}
+            <!-- INGREDIENT OVERLAP WARNING -->
+            <div class="warning-box overlap-warning-box">
+                <h3>⚠️ INGREDIENT OVERLAP WARNING ⚠️</h3>
+                <p><strong>{{ warning }}</strong></p>
+                <p>Taking medications with the same active ingredients can lead to overdose or serious side effects.</p>
+
+                <form action="/add_medication" method="post" style="margin-top: 16px;">
+                    <input type="hidden" name="confirm" value="yes">
+                    <input type="hidden" name="name" value="{{ form_data.get('name') }}">
+                    <input type="hidden" name="dosage" value="{{ form_data.get('dosage') }}">
+                    <input type="hidden" name="frequency" value="{{ form_data.get('frequency') }}">
+                    <input type="hidden" name="purpose" value="{{ form_data.get('purpose') }}">
+                    <input type="hidden" name="notes" value="{{ form_data.get('notes') }}">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 12px;">
+                        <button type="submit" class="btn-warning">YES, I UNDERSTAND THE RISK</button>
+                        <a href="/add_medication">
+                            <button type="button" class="btn-cancel-large">CANCEL</button>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        {% elif "duplicate" in warning.lower() or "already have" in warning.lower() %}
+            <!-- DUPLICATE MEDICATION WARNING -->
+            <div class="warning-box duplicate-warning-box">
+                <h3>⚠️ DUPLICATE MEDICATION WARNING ⚠️</h3>
+                <p><strong>{{ warning }}</strong></p>
+                <p>Are you ABSOLUTELY SURE you want to add this medication again?</p>
+
+                <form action="/add_medication" method="post" style="margin-top: 16px;">
+                    <input type="hidden" name="confirm" value="yes">
+                    <input type="hidden" name="name" value="{{ form_data.get('name') }}">
+                    <input type="hidden" name="dosage" value="{{ form_data.get('dosage') }}">
+                    <input type="hidden" name="frequency" value="{{ form_data.get('frequency') }}">
+                    <input type="hidden" name="purpose" value="{{ form_data.get('purpose') }}">
+                    <input type="hidden" name="notes" value="{{ form_data.get('notes') }}">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                        <button type="submit" class="btn-danger">YES, ADD ANYWAY</button>
+                        <a href="/add_medication">
+                            <button type="button" class="btn-cancel-large">CANCEL</button>
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        {% else %}
+            <!-- UNVERIFIED MEDICATION WARNING -->
+            <div class="warning-box unverified-warning-box">
+                <h3>⚠️ UNVERIFIED MEDICATION NOTICE ⚠️</h3>
+                <p><strong>{{ warning }}</strong></p>
+                <p>This medication was not found in RxNorm or OpenFDA. Add it manually?</p>
+
+                <form action="/add_medication" method="post" style="margin-top: 16px;">
+                    <input type="hidden" name="confirm" value="yes">
+                    <input type="hidden" name="name" value="{{ form_data.get('name') }}">
+                    <input type="hidden" name="dosage" value="{{ form_data.get('dosage') }}">
+                    <input type="hidden" name="frequency" value="{{ form_data.get('frequency') }}">
+                    <input type="hidden" name="purpose" value="{{ form_data.get('purpose') }}">
+                    <input type="hidden" name="notes" value="{{ form_data.get('notes') }}">
+
+                    <div style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 12px;">
+                        <button type="submit" class="btn-warning">YES, ADD ANYWAY</button>
+                        <a href="/add_medication">
+                            <button type="button" class="btn-cancel-large">CANCEL</button>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    {% endif %}
+    
+    <!-- Medication Entry Form -->
+    <form action="/add_medication" method="post">
+        <div class="form-group">
+            <label for="name">Medication Name</label>
+            <input type="text" name="name" id="name" placeholder="e.g., Aspirin" required autofocus>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="dosage">Dosage</label>
+                <input type="text" name="dosage" id="dosage" placeholder="e.g., 100mg" required>
+            </div>
+            <div class="form-group">
+                <label for="frequency">Frequency</label>
+                <input type="text" name="frequency" id="frequency" placeholder="e.g., Twice daily" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="purpose">Purpose</label>
+            <textarea name="purpose" id="purpose" placeholder="e.g., Pain relief, blood pressure control" required></textarea>
+            <small class="form-hint">
+                Enter the reason this medication was prescribed
+            </small>
+        </div>
+        
+        <div class="form-group">
+            <label for="notes">Notes (Optional)</label>
+            <textarea name="notes" id="notes" placeholder="Additional information about this medication"></textarea>
+        </div>
+        
+        <button type="submit">Add Medication</button>
+    </form>
+</div>
+
+<!-- Auto-fade flash messages -->
+<script>
+setTimeout(() => {
+    document.querySelectorAll('.flash').forEach(flash => {
+        flash.style.transition = "opacity 0.5s ease";
+        flash.style.opacity = "0";
+        setTimeout(() => flash.remove(), 500);
+    });
+}, 4000);
+</script>
+
+<script>
+// Proper focus trap - keep tabbing within the form
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const focusableElements = form.querySelectorAll('input, textarea, button');
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    
+    form.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            if (e.shiftKey) { // Shift + Tab (backwards)
+                if (document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                }
+            } else { // Tab (forwards)
+                if (document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        }
+    });
+    
+    // Ensure first field is focused on page load
+    firstElement.focus();
+});
+</script>
+
+{% endblock %}
